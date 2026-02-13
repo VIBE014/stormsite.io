@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stormsite - Your Ultimate Weather Companion</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', 'Segoe UI', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated storm background */
+        .lightning {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            animation: lightningFlash 8s infinite;
+        }
+
+        @keyframes lightningFlash {
+            0%, 95%, 98% { background: transparent; }
+            96%, 97% { background: rgba(255, 255, 255, 0.3); }
+        }
+
+        .rain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .raindrop {
+            position: absolute;
+            width: 2px;
+            height: 20px;
+            background: linear-gradient(transparent, rgba(174, 214, 241, 0.6));
+            animation: rain linear infinite;
+        }
+
+        @keyframes rain {
+            0% { transform: translateY(-100vh); }
+            100% { transform: translateY(100vh); }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Stormsite Header with Glitch Effect */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .storm-title {
+            font-size: 5rem;
+            font-weight: 900;
+            color: transparent;
+            -webkit-text-stroke: 3px #4ecdc4;
+            position: relative;
+            text-transform: uppercase;
+            letter-spacing: 8px;
+            animation: flicker 3s infinite;
+        }
+
+        .storm-title::before,
+        .storm-title::after {
+            content: 'STORMSITE';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .storm-title::before {
+            color: #ff6b6b;
+            -webkit-text-stroke: 3px #ff6b6b;
+            animation: glitch 3s infinite;
+            z-index: -1;
+        }
+
+        .storm-title::after {
+            color: #4ecdc4;
+            -webkit-text-stroke: 3px #4ecdc4;
+            animation: glitch 2s infinite reverse;
+            z-index: -2;
+        }
+
+        @keyframes glitch {
+            0%, 100% { transform: translate(0); }
+            20% { transform: translate(-5px, 5px); }
+            40% { transform: translate(-5px, -5px); }
+            60% { transform: translate(5px, 5px); }
+            80% { transform: translate(5px, -5px); }
+        }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            41% { opacity: 1; }
+            42% { opacity: 0.8; }
+            43% { opacity: 1; }
+            44% { opacity: 0.6; }
+            45% { opacity: 1; }
+        }
+
+        .tagline {
+            color: rgba(255,255,255,0.8);
+            font-size: 1.2rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-top: -15px;
+            text-shadow: 0 0 10px #4ecdc4;
+        }
+
+        /* Storm Search Section */
+        .storm-search {
+            background: rgba(10, 25, 35, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 40px;
+            border: 2px solid #4ecdc4;
+            box-shadow: 0 0 30px rgba(78, 205, 196, 0.3);
+            transform-style: preserve-3d;
+            animation: borderPulse 2s infinite;
+        }
+
+        @keyframes borderPulse {
+            0%, 100% { border-color: #4ecdc4; box-shadow: 0 0 30px rgba(78, 205, 196, 0.3); }
+            50% { border-color: #ff6b6b; box-shadow: 0 0 50px rgba(255, 107, 107, 0.5); }
+        }
+
+        .search-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .storm-icon {
+            font-size: 2.5rem;
+            animation: stormSpin 4s linear infinite;
+        }
+
+        @keyframes stormSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .search-header h2 {
+            color: white;
+            font-size: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .search-grid {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 15px;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #4ecdc4;
+            font-size: 1.2rem;
+        }
+
+        #cityInput {
+            width: 100%;
+            padding: 18px 25px 18px 55px;
+            font-size: 1.1rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #4ecdc4;
+            border-radius: 15px;
+            color: white;
+            transition: all 0.3s;
+        }
+
+        #cityInput:focus {
+            outline: none;
+            border-color: #ff6b6b;
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.5);
+            transform: scale(1.02);
+        }
+
+        #cityInput::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+
+        .storm-btn {
+            padding: 18px 35px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid transparent;
+        }
+
+        .storm-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .storm-btn:hover::before {
+            left: 100%;
+        }
+
+        .storm-btn.primary {
+            background: #4ecdc4;
+            color: #0f2027;
+        }
+
+        .storm-btn.primary:hover {
+            background: #ff6b6b;
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255, 107, 107, 0.4);
+        }
+
+        .storm-btn.secondary {
+            background: transparent;
+            color: #4ecdc4;
+            border: 2px solid #4ecdc4;
+        }
+
+        .storm-btn.secondary:hover {
+            background: #4ecdc4;
+            color: #0f2027;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(78, 205, 196, 0.4);
+        }
+
+        /* Storm Cities */
+        .storm-cities {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+
+        .city-bolt {
+            background: rgba(78, 205, 196, 0.1);
+            border: 2px solid #4ecdc4;
+            color: #4ecdc4;
+            padding: 12px 25px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .city-bolt:hover {
+            background: #ff6b6b;
+            border-color: #ff6b6b;
+            color: white;
+            transform: scale(1.1) rotate(2deg);
+            box-shadow: 0 0 30px rgba(255, 107, 107, 0.5);
+        }
+
+        .city-bolt i {
+            font-size: 1.2rem;
+        }
+
+        /* Storm Current Weather */
+        .storm-current {
+            background: rgba(10, 25, 35, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 40px;
+            margin-bottom: 40px;
+            border: 2px solid #4ecdc4;
+            position: relative;
+            overflow: hidden;
+            animation: slideInStorm 0.8s ease;
+        }
+
+        @keyframes slideInStorm {
+            from { transform: translateX(-100px) rotate(-5deg); opacity: 0; }
+            to { transform: translateX(0) rotate(0); opacity: 1; }
+        }
+
+        .storm-effect {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(78, 205, 196, 0.1), transparent 50%);
+            pointer-events: none;
+        }
+
+        .weather-header-storm {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 30px;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .storm-location h2 {
+            color: #4ecdc4;
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .storm-location p {
+            color: rgba(255,255,255,0.7);
+            font-size: 1.1rem;
+        }
+
+        .storm-temp-box {
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .storm-temp {
+            font-size: 6rem;
+            font-weight: 900;
+            color: #ff6b6b;
+            text-shadow: 0 0 30px rgba(255, 107, 107, 0.5);
+            line-height: 1;
+            position: relative;
+            display: inline-block;
+        }
+
+        .storm-temp small {
+            font-size: 2rem;
+            color: #4ecdc4;
+        }
+
+        .temp-switch {
+            margin-top: 10px;
+            font-size: 1rem;
+            color: #4ecdc4;
+            opacity: 0.7;
+        }
+
+        .storm-icon-large {
+            font-size: 8rem;
+            filter: drop-shadow(0 0 30px #4ecdc4);
+            animation: stormFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes stormFloat {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
+
+        .storm-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 25px;
+            margin-top: 40px;
+        }
+
+        .storm-detail-card {
+            background: rgba(78, 205, 196, 0.1);
+            border: 2px solid #4ecdc4;
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .storm-detail-card::after {
+            content: '⚡';
+            position: absolute;
+            bottom: -20px;
+            right: -20px;
+            font-size: 4rem;
+            opacity: 0.1;
+            transform: rotate(-20deg);
+        }
+
+        .storm-detail-card:hover {
+            transform: translateY(-10px) scale(1.05);
+            border-color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+        }
+
+        .storm-detail-card i {
+            font-size: 2.5rem;
+            color: #4ecdc4;
+            margin-bottom: 15px;
+        }
+
+        .detail-label-storm {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .detail-value-storm {
+            color: #ff6b6b;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        /* Storm Forecast */
+        .storm-forecast {
+            background: rgba(10, 25, 35, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 40px;
+            border: 2px solid #4ecdc4;
+            margin-bottom: 40px;
+        }
+
+        .forecast-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .forecast-header h3 {
+            color: #4ecdc4;
+            font-size: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .forecast-scroll {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+        }
+
+        .storm-day-card {
+            background: rgba(78, 205, 196, 0.1);
+            border: 2px solid #4ecdc4;
+            border-radius: 20px;
+            padding: 25px 15px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .storm-day-card:hover {
+            transform: translateY(-10px) rotate(-2deg);
+            border-color: #ff6b6b;
+            box-shadow: 0 20px 40px rgba(255, 107, 107, 0.3);
+        }
+
+        .day-name {
+            color: #4ecdc4;
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .day-date {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .day-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 0 15px #4ecdc4);
+        }
+
+        .day-temp {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #ff6b6b;
+        }
+
+        .day-desc {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.9rem;
+            margin-top: 10px;
+            text-transform: capitalize;
+        }
+
+        /* Storm Facts */
+        .storm-facts {
+            background: rgba(10, 25, 35, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px 35px;
+            border: 2px solid #4ecdc4;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 30px;
+        }
+
+        .storm-facts:hover {
+            transform: scale(1.02);
+            border-color: #ff6b6b;
+            box-shadow: 0 0 40px rgba(255, 107, 107, 0.3);
+        }
+
+        .fact-content {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            color: white;
+        }
+
+        .fact-icon {
+            font-size: 2.5rem;
+            animation: thunderShake 2s infinite;
+        }
+
+        @keyframes thunderShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .fact-text {
+            font-size: 1.1rem;
+            line-height: 1.5;
+            color: #4ecdc4;
+        }
+
+        /* Loading Animation */
+        .storm-loading {
+            text-align: center;
+            padding: 60px;
+        }
+
+        .thunder-spinner {
+            width: 80px;
+            height: 80px;
+            position: relative;
+            margin: 0 auto 30px;
+        }
+
+        .bolt {
+            position: absolute;
+            font-size: 3rem;
+            animation: thunderBolt 1.5s infinite;
+        }
+
+        .bolt:nth-child(1) { animation-delay: 0s; left: 0; }
+        .bolt:nth-child(2) { animation-delay: 0.5s; left: 30px; }
+        .bolt:nth-child(3) { animation-delay: 1s; left: 60px; }
+
+        @keyframes thunderBolt {
+            0%, 100% { transform: translateY(0) scale(1); opacity: 1; }
+            50% { transform: translateY(-30px) scale(1.2); opacity: 0.7; }
+        }
+
+        .storm-loading p {
+            color: #4ecdc4;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        /* Error Message */
+        .storm-error {
+            background: rgba(255, 107, 107, 0.2);
+            border: 2px solid #ff6b6b;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #ff6b6b;
+            font-size: 1.1rem;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .storm-title { font-size: 3rem; }
+            .search-grid { grid-template-columns: 1fr; }
+            .weather-header-storm { grid-template-columns: 1fr; text-align: center; }
+            .storm-temp { font-size: 4rem; }
+            .storm-icon-large { font-size: 5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="lightning"></div>
+    <div class="rain" id="rainContainer"></div>
+
+    <div class="container">
+        <div class="header">
+            <h1 class="storm-title">STORMSITE</h1>
+            <div class="tagline">⚡ WHERE WEATHER MEETS THE STORM ⚡</div>
+        </div>
+
+        <div class="storm-search">
+            <div class="search-header">
+                <div class="storm-icon">🌪️</div>
+                <h2>STORM TRACKER</h2>
+            </div>
+            
+            <div class="search-grid">
+                <div class="input-group">
+                    <i>⚡</i>
+                    <input type="text" id="cityInput" placeholder="Enter city name..." value="London">
+                </div>
+                <button class="storm-btn primary" onclick="getWeather()">
+                    <span>🔍</span> TRACK STORM
+                </button>
+                <button class="storm-btn secondary" onclick="getCurrentLocation()">
+                    <span>📍</span> MY LOCATION
+                </button>
+            </div>
+
+            <div class="storm-cities" id="recentCities"></div>
+        </div>
+
+        <div class="storm-error" id="errorMessage" style="display: none;"></div>
+        
+        <div class="storm-loading" id="loading" style="display: none;">
+            <div class="thunder-spinner">
+                <div class="bolt">⚡</div>
+                <div class="bolt">⚡</div>
+                <div class="bolt">⚡</div>
+            </div>
+            <p>SUMMONING THE STORM...</p>
+        </div>
+
+        <div id="weatherContent" style="display: none;">
+            <div class="storm-current" id="currentWeather"></div>
+            
+            <div class="storm-forecast">
+                <div class="forecast-header">
+                    <h3>⚡ 5-DAY STORM FORECAST ⚡</h3>
+                    <div style="color: #4ecdc4;">← SWIPE →</div>
+                </div>
+                <div class="forecast-scroll" id="forecastGrid"></div>
+            </div>
+
+            <div class="storm-facts" id="funFact" onclick="showNewFunFact()">
+                <div class="fact-content">
+                    <div class="fact-icon">🌩️</div>
+                    <div class="fact-text" id="funFactText">Did you know? Lightning strikes the Earth about 100 times every second!</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_KEY = '5653e706ceb01e537c389bdd54d76e21'; // Replace with your actual OpenWeatherMap API key
+        const BASE_URL = 'https://api.openweathermap.org/data/2.5';
+        
+        let recentCities = JSON.parse(localStorage.getItem('stormsiteCities')) || ['London', 'New York', 'Tokyo', 'Sydney', 'Moscow'];
+        let currentTempCelsius = null;
+        let currentUnit = 'C';
+
+        const stormFacts = [
+            "⚡ Lightning strikes the Earth about 100 times every second!",
+            "🌪️ A single hurricane can release energy equivalent to 10,000 nuclear bombs!",
+            "🌧️ The heaviest rainfall ever recorded was 1.825 meters in 24 hours!",
+            "❄️ The largest snowflake ever recorded was 38cm wide!",
+            "🌈 Rainbows are actually full circles, but we only see half from ground!",
+            "🌡️ The highest temperature ever recorded was 56.7°C in Death Valley!",
+            "🌬️ Wind isn't visible, but the fastest wind speed was 407 km/h!",
+            "⛈️ A thunderstorm can produce up to 100 million volts of electricity!",
+            "☁️ A single cloud can weigh more than 1 million pounds!",
+            "🌊 90% of global warming is absorbed by the oceans!"
+        ];
+
+        // Initialize rain effect
+        function createRain() {
+            const rainContainer = document.getElementById('rainContainer');
+            for (let i = 0; i < 100; i++) {
+                const raindrop = document.createElement('div');
+                raindrop.className = 'raindrop';
+                raindrop.style.left = Math.random() * 100 + '%';
+                raindrop.style.animationDuration = (Math.random() * 1 + 0.5) + 's';
+                raindrop.style.animationDelay = Math.random() * 5 + 's';
+                rainContainer.appendChild(raindrop);
+            }
+        }
+
+        createRain();
+        displayRecentCities();
+        showNewFunFact();
+
+        function showNewFunFact() {
+            const randomFact = stormFacts[Math.floor(Math.random() * stormFacts.length)];
+            document.getElementById('funFactText').textContent = randomFact;
+        }
+
+        function displayRecentCities() {
+            const container = document.getElementById('recentCities');
+            container.innerHTML = '';
+            
+            recentCities.forEach(city => {
+                const chip = document.createElement('div');
+                chip.className = 'city-bolt';
+                chip.innerHTML = `⚡ ${city}`;
+                chip.onclick = () => getWeather(city);
+                container.appendChild(chip);
+            });
+        }
+
+        function addToRecentCities(city) {
+            if (!recentCities.includes(city)) {
+                recentCities.unshift(city);
+                if (recentCities.length > 5) {
+                    recentCities.pop();
+                }
+                localStorage.setItem('stormsiteCities', JSON.stringify(recentCities));
+                displayRecentCities();
+            }
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+            if (show) {
+                document.getElementById('weatherContent').style.display = 'none';
+            }
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = '⚠️ ' + message + ' ⚠️';
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 4000);
+        }
+
+        async function getWeather(city = null) {
+            const cityInput = document.getElementById('cityInput');
+            const searchCity = city || cityInput.value.trim();
+            
+            if (!searchCity) {
+                showError('ENTER A CITY TO TRACK THE STORM!');
+                return;
+            }
+
+            showLoading(true);
+
+            try {
+                const currentWeather = await fetchWeatherData(`weather?q=${searchCity}&units=metric`);
+                const forecast = await fetchWeatherData(`forecast?q=${searchCity}&units=metric`);
+                
+                currentTempCelsius = currentWeather.main.temp;
+                displayCurrentWeather(currentWeather);
+                displayForecast(forecast);
+                
+                addToRecentCities(searchCity);
+                cityInput.value = searchCity;
+                
+                document.getElementById('weatherContent').style.display = 'block';
+                showLoading(false);
+            } catch (error) {
+                showError('CITY NOT FOUND! THE STORM AVOIDS THIS PLACE...');
+                showLoading(false);
+            }
+        }
+
+        async function fetchWeatherData(endpoint) {
+            const response = await fetch(`${BASE_URL}/${endpoint}&appid=${API_KEY}`);
+            
+            if (!response.ok) {
+                throw new Error('Weather data not available');
+            }
+            
+            return await response.json();
+        }
+
+        function displayCurrentWeather(data) {
+            const currentWeather = document.getElementById('currentWeather');
+            
+            const weatherHtml = `
+                <div class="storm-effect"></div>
+                <div class="weather-header-storm">
+                    <div class="storm-location">
+                        <h2>${data.name}</h2>
+                        <p>${data.sys.country} • ${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+                    </div>
+                    <div class="storm-icon-large">${getStormIcon(data.weather[0].icon)}</div>
+                    <div class="storm-temp-box" onclick="toggleTemperatureUnit()">
+                        <div class="storm-temp">
+                            ${Math.round(currentUnit === 'C' ? data.main.temp : (data.main.temp * 9/5) + 32)}<small>°${currentUnit}</small>
+                        </div>
+                        <div class="temp-switch">⚡ CLICK TO TOGGLE ⚡</div>
+                    </div>
+                </div>
+                <div style="text-align: center; margin: 20px 0;">
+                    <span style="color: #4ecdc4; font-size: 2rem; text-transform: uppercase;">${data.weather[0].description}</span>
+                </div>
+                <div class="storm-details">
+                    <div class="storm-detail-card">
+                        <i>🌡️</i>
+                        <div class="detail-label-storm">FEELS LIKE</div>
+                        <div class="detail-value-storm">${Math.round(data.main.feels_like)}°${currentUnit}</div>
+                    </div>
+                    <div class="storm-detail-card">
+                        <i>💧</i>
+                        <div class="detail-label-storm">HUMIDITY</div>
+                        <div class="detail-value-storm">${data.main.humidity}%</div>
+                    </div>
+                    <div class="storm-detail-card">
+                        <i>🌪️</i>
+                        <div class="detail-label-storm">WIND SPEED</div>
+                        <div class="detail-value-storm">${data.wind.speed} m/s</div>
+                    </div>
+                    <div class="storm-detail-card">
+                        <i>📊</i>
+                        <div class="detail-label-storm">PRESSURE</div>
+                        <div class="detail-value-storm">${data.main.pressure} hPa</div>
+                    </div>
+                </div>
+            `;
+            
+            currentWeather.innerHTML = weatherHtml;
+        }
+
+        function displayForecast(data) {
+            const forecastGrid = document.getElementById('forecastGrid');
+            
+            const dailyForecasts = data.list.filter(item => item.dt_txt.includes('12:00:00')).slice(0, 5);
+            
+            let forecastHtml = '';
+            
+            dailyForecasts.forEach(day => {
+                const date = new Date(day.dt * 1000);
+                
+                forecastHtml += `
+                    <div class="storm-day-card">
+                        <div class="day-name">${date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
+                        <div class="day-date">${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
+                        <div class="day-icon">${getStormIcon(day.weather[0].icon)}</div>
+                        <div class="day-temp">${Math.round(day.main.temp)}°C</div>
+                        <div class="day-desc">${day.weather[0].description}</div>
+                    </div>
+                `;
+            });
+            
+            forecastGrid.innerHTML = forecastHtml;
+        }
+
+        function getStormIcon(iconCode) {
+            const iconMap = {
+                '01d': '☀️', '01n': '🌙',
+                '02d': '⛅', '02n': '☁️',
+                '03d': '☁️', '03n': '☁️',
+                '04d': '☁️', '04n': '☁️',
+                '09d': '🌧️', '09n': '🌧️',
+                '10d': '🌦️', '10n': '🌧️',
+                '11d': '⛈️', '11n': '⛈️',
+                '13d': '❄️', '13n': '❄️',
+                '50d': '🌫️', '50n': '🌫️'
+            };
+            return iconMap[iconCode] || '☀️';
+        }
+
+        function toggleTemperatureUnit() {
+            if (currentUnit === 'C') {
+                currentUnit = 'F';
+            } else {
+                currentUnit = 'C';
+            }
+            
+            const cityInput = document.getElementById('cityInput').value;
+            if (cityInput) {
+                getWeather(cityInput);
+            }
+        }
+
+        function getCurrentLocation() {
+            if (navigator.geolocation) {
+                showLoading(true);
+                navigator.geolocation.getCurrentLocation({
+                    enableHighAccuracy: true,
+                    timeout: 5000,
+                    maximumAge: 0
+                }, async position => {
+                    try {
+                        const { latitude, longitude } = position.coords;
+                        const currentWeather = await fetchWeatherData(`weather?lat=${latitude}&lon=${longitude}&units=metric`);
+                        const forecast = await fetchWeatherData(`forecast?lat=${latitude}&lon=${longitude}&units=metric`);
+                        
+                        document.getElementById('cityInput').value = currentWeather.name;
+                        
+                        displayCurrentWeather(currentWeather);
+                        displayForecast(forecast);
+                        
+                        addToRecentCities(currentWeather.name);
+                        
+                        document.getElementById('weatherContent').style.display = 'block';
+                        showLoading(false);
+                    } catch (error) {
+                        showError('STORM CANT FIND YOUR LOCATION!');
+                        showLoading(false);
+                    }
+                }, error => {
+                    let errorMsg = 'LOCATION ACCESS DENIED! ';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMsg += 'ALLOW LOCATION TO TRACK STORMS';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMsg += 'LOCATION SIGNAL LOST IN STORM';
+                            break;
+                        case error.TIMEOUT:
+                            errorMsg += 'LOCATION TIMEOUT - STORM TOO STRONG';
+                            break;
+                    }
+                    showError(errorMsg);
+                    showLoading(false);
+                });
+            } else {
+                showError('GEOLOCATION NOT SUPPORTED - USE SEARCH INSTEAD');
+            }
+        }
+
+        // Load default city on page load
+        window.onload = function() {
+            getWeather('London');
+        };
+    </script>
+</body>
+</html>
