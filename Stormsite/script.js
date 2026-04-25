@@ -2,7 +2,7 @@
 const API_KEY = '5653e706ceb01e537c389bdd54d76e21';   // replace with your key
 const BASE = 'https://api.openweathermap.org/data/2.5';
 let unitSystem = localStorage.getItem('stormUnit') || 'metric';   // metric = °C, imperial = °F
-let currentCity = 'London';
+let currentCity = 'Ilorin';
 let currentWeatherData = null;
 let currentForecast = null;
 
